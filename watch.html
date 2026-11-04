@@ -27,7 +27,7 @@
 
         .video-controls {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
             align-items: end;
             gap: 10px;
             flex: 0 0 auto;
@@ -49,11 +49,13 @@
             padding: 7px 12px;
         }
 
-        .second-video {
-            flex: 1 1 auto;
-            min-height: 0;
+        .first-video {
+            flex: 0 0 auto;
+            width: min(320px, 100%);
+            aspect-ratio: 16 / 9;
         }
 
+        .first-video iframe,
         .second-video iframe {
             display: block;
             width: 100%;
@@ -61,17 +63,22 @@
             border: 0;
         }
 
-        .audio-only-player {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
+        .second-video {
+            flex: 1 1 auto;
+            min-height: 0;
         }
 
         @media (max-width: 700px) {
             .video-controls {
                 grid-template-columns: 1fr 1fr;
+            }
+
+            .video-controls button {
+                grid-column: 1 / -1;
+            }
+
+            .first-video {
+                width: min(240px, 100%);
             }
         }
     </style>
@@ -79,18 +86,19 @@
 <body>
     <form class="video-controls" id="videoForm">
         <div class="link-field">
-            <label for="firstLink">First video link (audio)</label>
+            <label for="firstLink">First video (play this for audio)</label>
             <input id="firstLink" type="text" placeholder="Paste a YouTube URL or video ID">
         </div>
         <div class="link-field">
-            <label for="secondLink">Second video link</label>
+            <label for="secondLink">Second video</label>
             <input id="secondLink" type="text" placeholder="Paste a YouTube URL or video ID">
         </div>
         <button type="submit">Load videos</button>
-        <button id="playAudio" type="button">Play first video audio</button>
     </form>
 
-    <iframe id="demo" class="audio-only-player" src="" title="Audio from the first YouTube video" allow="autoplay; encrypted-media"></iframe>
+    <section class="first-video" aria-label="First YouTube video player">
+        <iframe id="demo" src="" title="First YouTube video — play to hear its audio" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </section>
     <main class="second-video">
         <iframe id="demo2" src="" title="Second YouTube video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
     </main>
@@ -99,8 +107,7 @@
         const params = new URLSearchParams(window.location.search);
         const firstLink = document.getElementById("firstLink");
         const secondLink = document.getElementById("secondLink");
-        const audioPlayer = document.getElementById("demo");
-        const playAudioButton = document.getElementById("playAudio");
+        const firstPlayer = document.getElementById("demo");
         const secondPlayer = document.getElementById("demo2");
 
         function getVideoId(value) {
@@ -127,17 +134,15 @@
         function updatePlayers(firstCode, secondCode) {
             firstLink.value = firstCode || "";
             secondLink.value = secondCode || "";
-            audioPlayer.src = "";
-            playAudioButton.disabled = !firstCode;
-            playAudioButton.textContent = firstCode ? "Play first video audio" : "No first video provided";
+            firstPlayer.src = firstCode
+                ? `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}`
+                : "";
             secondPlayer.src = secondCode
                 ? `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}`
                 : "";
         }
 
-        const initialFirstCode = params.get("code") || "";
-        const initialSecondCode = params.get("code2") || "";
-        updatePlayers(initialFirstCode, initialSecondCode);
+        updatePlayers(params.get("code") || "", params.get("code2") || "");
 
         document.getElementById("videoForm").addEventListener("submit", (event) => {
             event.preventDefault();
@@ -149,13 +154,6 @@
             const query = nextParams.toString();
             window.history.replaceState(null, "", query ? `${window.location.pathname}?${query}` : window.location.pathname);
             updatePlayers(firstCode, secondCode);
-        });
-
-        playAudioButton.addEventListener("click", () => {
-            const firstCode = getVideoId(firstLink.value);
-            if (!firstCode) return;
-            audioPlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}?autoplay=1`;
-            playAudioButton.textContent = "Audio playing";
         });
     </script>
 </body>
