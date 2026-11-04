@@ -6,6 +6,61 @@
     <title>YouTube Watch</title>
     <link rel="stylesheet" href="index.css">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .video-controls {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+            align-items: end;
+            gap: 10px;
+            flex: 0 0 auto;
+        }
+
+        .link-field label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .link-field input {
+            width: 100%;
+            margin: 0;
+            padding: 9px;
+        }
+
+        .video-controls button {
+            min-height: 36px;
+            padding: 7px 12px;
+        }
+
+        .second-video {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .second-video iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
         .audio-only-player {
             position: absolute;
             width: 1px;
@@ -13,33 +68,95 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        @media (max-width: 700px) {
+            .video-controls {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <a href="index.html">Back</a>
-    <p><button id="playAudio" type="button">Play first video audio</button></p>
-    <iframe id="demo" class="audio-only-player" src="" title="Audio from the first YouTube video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    <iframe id="demo2" width="640" height="360" src="" title="YouTube video player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <form class="video-controls" id="videoForm">
+        <div class="link-field">
+            <label for="firstLink">First video link (audio)</label>
+            <input id="firstLink" type="text" placeholder="Paste a YouTube URL or video ID">
+        </div>
+        <div class="link-field">
+            <label for="secondLink">Second video link</label>
+            <input id="secondLink" type="text" placeholder="Paste a YouTube URL or video ID">
+        </div>
+        <button type="submit">Load videos</button>
+        <button id="playAudio" type="button">Play first video audio</button>
+    </form>
+
+    <iframe id="demo" class="audio-only-player" src="" title="Audio from the first YouTube video" allow="autoplay; encrypted-media"></iframe>
+    <main class="second-video">
+        <iframe id="demo2" src="" title="Second YouTube video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </main>
+
     <script>
         const params = new URLSearchParams(window.location.search);
-        const firstCode = params.get("code");
-        const secondCode = params.get("code2");
+        const firstLink = document.getElementById("firstLink");
+        const secondLink = document.getElementById("secondLink");
         const audioPlayer = document.getElementById("demo");
         const playAudioButton = document.getElementById("playAudio");
+        const secondPlayer = document.getElementById("demo2");
 
-        if (firstCode) {
-            playAudioButton.addEventListener("click", () => {
-                audioPlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}?autoplay=1`;
-                playAudioButton.textContent = "Audio playing";
-            });
-        } else {
-            playAudioButton.disabled = true;
-            playAudioButton.textContent = "No first video provided";
+        function getVideoId(value) {
+            const input = value.trim();
+            if (!input) return "";
+
+            try {
+                const url = new URL(input);
+                if (url.hostname === "youtu.be" || url.hostname.endsWith(".youtu.be")) {
+                    return url.pathname.split("/").filter(Boolean)[0] || "";
+                }
+                if (url.hostname.includes("youtube.com")) {
+                    if (url.pathname === "/watch") return url.searchParams.get("v") || "";
+                    const parts = url.pathname.split("/").filter(Boolean);
+                    if (["embed", "shorts", "live"].includes(parts[0])) return parts[1] || "";
+                }
+            } catch {
+                // Treat non-URL input as a video ID.
+            }
+
+            return input.split(/[?&]/)[0];
         }
 
-        if (secondCode) {
-            document.getElementById("demo2").src = `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}`;
+        function updatePlayers(firstCode, secondCode) {
+            firstLink.value = firstCode || "";
+            secondLink.value = secondCode || "";
+            audioPlayer.src = "";
+            playAudioButton.disabled = !firstCode;
+            playAudioButton.textContent = firstCode ? "Play first video audio" : "No first video provided";
+            secondPlayer.src = secondCode
+                ? `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}`
+                : "";
         }
+
+        const initialFirstCode = params.get("code") || "";
+        const initialSecondCode = params.get("code2") || "";
+        updatePlayers(initialFirstCode, initialSecondCode);
+
+        document.getElementById("videoForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const firstCode = getVideoId(firstLink.value);
+            const secondCode = getVideoId(secondLink.value);
+            const nextParams = new URLSearchParams();
+            if (firstCode) nextParams.set("code", firstCode);
+            if (secondCode) nextParams.set("code2", secondCode);
+            const query = nextParams.toString();
+            window.history.replaceState(null, "", query ? `${window.location.pathname}?${query}` : window.location.pathname);
+            updatePlayers(firstCode, secondCode);
+        });
+
+        playAudioButton.addEventListener("click", () => {
+            const firstCode = getVideoId(firstLink.value);
+            if (!firstCode) return;
+            audioPlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}?autoplay=1`;
+            playAudioButton.textContent = "Audio playing";
+        });
     </script>
 </body>
 </html>
