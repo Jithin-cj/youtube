@@ -5,21 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Watch</title>
     <link rel="stylesheet" href="index.css">
+    <style>
+        .audio-only-player {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
     <a href="index.html">Back</a>
-    <div class="players">
-        <iframe id="demo" width="640" height="360" src="" title="YouTube video player 1" frameborder="0" allowfullscreen></iframe>
-        <iframe id="demo2" width="640" height="360" src="" title="YouTube video player 2" frameborder="0" allowfullscreen></iframe>
-    </div>
+    <p><button id="playAudio" type="button">Play first video audio</button></p>
+    <iframe id="demo" class="audio-only-player" src="" title="Audio from the first YouTube video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <iframe id="demo2" width="640" height="360" src="" title="YouTube video player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
     <script>
         const params = new URLSearchParams(window.location.search);
         const firstCode = params.get("code");
         const secondCode = params.get("code2");
+        const audioPlayer = document.getElementById("demo");
+        const playAudioButton = document.getElementById("playAudio");
 
         if (firstCode) {
-            document.getElementById("demo").src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}`;
+            playAudioButton.addEventListener("click", () => {
+                audioPlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}?autoplay=1`;
+                playAudioButton.textContent = "Audio playing";
+            });
+        } else {
+            playAudioButton.disabled = true;
+            playAudioButton.textContent = "No first video provided";
         }
+
         if (secondCode) {
             document.getElementById("demo2").src = `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}`;
         }
