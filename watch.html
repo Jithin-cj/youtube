@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Watch</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <a href="index.html">Back</a>
+    <div class="players">
+        <iframe id="demo" width="640" height="360" src="" title="YouTube video player 1" frameborder="0" allowfullscreen></iframe>
+        <iframe id="demo2" width="640" height="360" src="" title="YouTube video player 2" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const firstCode = params.get("code");
+        const secondCode = params.get("code2");
+
+        if (firstCode) {
+            document.getElementById("demo").src = `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}`;
+        }
+        if (secondCode) {
+            document.getElementById("demo2").src = `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}`;
+        }
+    </script>
+</body>
+</html>
