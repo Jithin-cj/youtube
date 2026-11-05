@@ -105,6 +105,8 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
+        const initialFirstCode = params.get("code") || "";
+        const initialSecondCode = params.get("code2") || "";
         const firstLink = document.getElementById("firstLink");
         const secondLink = document.getElementById("secondLink");
         const firstPlayer = document.getElementById("demo");
@@ -142,17 +144,16 @@
                 : "";
         }
 
-        updatePlayers(params.get("code") || "", params.get("code2") || "");
+        // Keep support for links with code/code2 parameters, but immediately remove them from the address bar.
+        if (window.location.search || window.location.hash) {
+            window.history.replaceState(null, "", window.location.pathname);
+        }
+        updatePlayers(initialFirstCode, initialSecondCode);
 
         document.getElementById("videoForm").addEventListener("submit", (event) => {
             event.preventDefault();
             const firstCode = getVideoId(firstLink.value);
             const secondCode = getVideoId(secondLink.value);
-            const nextParams = new URLSearchParams();
-            if (firstCode) nextParams.set("code", firstCode);
-            if (secondCode) nextParams.set("code2", secondCode);
-            const query = nextParams.toString();
-            window.history.replaceState(null, "", query ? `${window.location.pathname}?${query}` : window.location.pathname);
             updatePlayers(firstCode, secondCode);
         });
     </script>
