@@ -84,14 +84,14 @@
     </style>
 </head>
 <body>
-    <form class="video-controls" id="videoForm">
+    <form class="video-controls" id="videoForm" autocomplete="off">
         <div class="link-field">
             <label for="firstLink">First video (play this for audio)</label>
-            <input id="firstLink" type="text" placeholder="Paste a YouTube URL or video ID">
+            <input id="firstLink" type="text" autocomplete="off" placeholder="Paste a YouTube URL or video ID">
         </div>
         <div class="link-field">
             <label for="secondLink">Second video</label>
-            <input id="secondLink" type="text" placeholder="Paste a YouTube URL or video ID">
+            <input id="secondLink" type="text" autocomplete="off" placeholder="Paste a YouTube URL or video ID">
         </div>
         <button type="submit">Load videos</button>
     </form>
@@ -155,6 +155,12 @@
             const firstCode = getVideoId(firstLink.value);
             const secondCode = getVideoId(secondLink.value);
             updatePlayers(firstCode, secondCode);
+        });
+
+        // Clear field values when the page is being hidden to avoid browser back-forward cache retention.
+        window.addEventListener("pagehide", () => {
+            firstLink.value = "";
+            secondLink.value = "";
         });
     </script>
 </body>
