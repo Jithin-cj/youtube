@@ -27,7 +27,7 @@
 
         .video-controls {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
             align-items: end;
             gap: 10px;
             flex: 0 0 auto;
@@ -56,15 +56,17 @@
         }
 
         .first-video iframe,
-        .second-video iframe {
+        .second-video iframe,
+        .third-video iframe {
             display: block;
             width: 100%;
             height: 100%;
             border: 0;
         }
 
-        .second-video {
-            flex: 1 1 auto;
+        .second-video,
+        .third-video {
+            flex: 1 1 0;
             min-height: 0;
         }
 
@@ -93,6 +95,10 @@
             <label for="secondLink">Second video</label>
             <input id="secondLink" type="text" autocomplete="off" placeholder="Paste a YouTube URL or video ID">
         </div>
+        <div class="link-field">
+            <label for="thirdLink">Third video</label>
+            <input id="thirdLink" type="text" autocomplete="off" placeholder="Paste a YouTube URL or video ID">
+        </div>
         <button type="submit">Load videos</button>
     </form>
 
@@ -102,15 +108,21 @@
     <main class="second-video">
         <iframe id="demo2" src="" title="Second YouTube video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
     </main>
+    <section class="third-video" aria-label="Third YouTube video player">
+        <iframe id="demo3" src="" title="Third YouTube video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </section>
 
     <script>
         const params = new URLSearchParams(window.location.search);
         const initialFirstCode = params.get("code") || "";
         const initialSecondCode = params.get("code2") || "";
+        const initialThirdCode = params.get("code3") || "";
         const firstLink = document.getElementById("firstLink");
         const secondLink = document.getElementById("secondLink");
+        const thirdLink = document.getElementById("thirdLink");
         const firstPlayer = document.getElementById("demo");
         const secondPlayer = document.getElementById("demo2");
+        const thirdPlayer = document.getElementById("demo3");
 
         function getVideoId(value) {
             const input = value.trim();
@@ -133,34 +145,40 @@
             return input.split(/[?&]/)[0];
         }
 
-        function updatePlayers(firstCode, secondCode) {
+        function updatePlayers(firstCode, secondCode, thirdCode) {
             firstLink.value = firstCode || "";
             secondLink.value = secondCode || "";
+            thirdLink.value = thirdCode || "";
             firstPlayer.src = firstCode
                 ? `https://www.youtube.com/embed/${encodeURIComponent(firstCode)}?mute=0`
                 : "";
             secondPlayer.src = secondCode
                 ? `https://www.youtube.com/embed/${encodeURIComponent(secondCode)}?mute=1`
                 : "";
+            thirdPlayer.src = thirdCode
+                ? `https://www.youtube.com/embed/${encodeURIComponent(thirdCode)}?mute=1`
+                : "";
         }
 
-        // Keep support for links with code/code2 parameters, but immediately remove them from the address bar.
+        // Keep support for links with code/code2/code3 parameters, but immediately remove them from the address bar.
         if (window.location.search || window.location.hash) {
             window.history.replaceState(null, "", window.location.pathname);
         }
-        updatePlayers(initialFirstCode, initialSecondCode);
+        updatePlayers(initialFirstCode, initialSecondCode, initialThirdCode);
 
         document.getElementById("videoForm").addEventListener("submit", (event) => {
             event.preventDefault();
             const firstCode = getVideoId(firstLink.value);
             const secondCode = getVideoId(secondLink.value);
-            updatePlayers(firstCode, secondCode);
+            const thirdCode = getVideoId(thirdLink.value);
+            updatePlayers(firstCode, secondCode, thirdCode);
         });
 
         // Clear field values when the page is being hidden to avoid browser back-forward cache retention.
         window.addEventListener("pagehide", () => {
             firstLink.value = "";
             secondLink.value = "";
+            thirdLink.value = "";
         });
     </script>
 </body>
